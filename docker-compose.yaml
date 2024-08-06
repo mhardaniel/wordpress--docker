@@ -1,0 +1,75 @@
+---
+services:
+  db:
+    image: mysql:lts
+    container_name: wordpress-db
+    volumes:
+      - wordpressdb:/var/lib/mysql
+    env_file: .env
+    environment:
+      MYSQL_ROOT_PASSWOR: $MYSQL_ROOT_PASSWORD
+      MYSQL_DATABASE: visayakpo
+      MYSQL_USER: $MYSQL_USER
+      MYSQL_PASSWORD: $MYSQL_PASSWORD
+    networks:
+      - wordpress-network
+
+  visayakpo:
+    build:
+      context: ./php
+    depends_on:
+      - db
+    image: wordpress:fpm-alpine
+    container_name: wordpress-visayakpo
+    working_dir: /var/www/visayakpo
+    env_file: .env
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: $MYSQL_USER
+      WORDPRESS_DB_PASSWORD: $MYSQL_PASSWORD
+      WORDPRESS_DB_NAME: visayakpo
+    volumes:
+      - visayakpo:/var/www/visayakpo
+      - ./imports/visayakpo:/var/www/visayakpo/imports
+    networks:
+      - wordpress-network
+
+  web:
+    depends_on:
+      - visayakpo
+    image: nginx:alpine
+    container_name: wordpress-nginx
+    volumes:
+      - ${NGINX_HOST_LOG_PATH}:/var/log/nginx
+      - ./nginx/config:/etc/nginx/conf.d
+      - visayakpo:/var/www/visayakpo
+    ports:
+      - 8000:80 # visayakpo
+    networks:
+      - wordpress-network
+
+  pma:
+    image: phpmyadmin/phpmyadmin
+    container_name: wordpress-pma
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=${PMA_HOST}
+      - PMA_USER=${PMA_USER}
+      - PMA_PASSWORD=${PMA_PASSWORD}
+      - PMA_PORT=${PMA_PORT}
+      - UPLOAD_LIMIT=200M
+    depends_on:
+      - db
+    ports:
+      - 8888:80
+    networks:
+      - wordpress-network
+
+networks:
+  wordpress-network:
+    driver: bridge
+
+volumes:
+  visayakpo:
+  wordpressdb:
+    driver: local
