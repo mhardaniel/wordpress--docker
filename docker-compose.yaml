@@ -5,10 +5,11 @@ services:
     container_name: wordpress-db
     volumes:
       - wordpressdb:/var/lib/mysql
+      - ./mysql:/docker-entrypoint-initdb.d
     env_file: .env
     environment:
       MYSQL_ROOT_PASSWOR: $MYSQL_ROOT_PASSWORD
-      MYSQL_DATABASE: visayakpo
+      #MYSQL_DATABASE: visayakpo
       MYSQL_USER: $MYSQL_USER
       MYSQL_PASSWORD: $MYSQL_PASSWORD
     networks:
@@ -34,17 +35,38 @@ services:
     networks:
       - wordpress-network
 
+  # exceture:
+  #   depends_on:
+  #     - db
+  #   image: wordpress:fpm-alpine
+  #   container_name: wordpress-exceture
+  #   working_dir: /var/www/exceture
+  #   env_file: .env
+  #   environment:
+  #     WORDPRESS_DB_HOST: db
+  #     WORDPRESS_DB_USER: $MYSQL_USER
+  #     WORDPRESS_DB_PASSWORD: $MYSQL_PASSWORD
+  #     WORDPRESS_DB_NAME: exceture
+  #   volumes:
+  #     - exceture:/var/www/exceture
+  #     - ./imports/exceture:/var/www/exceture/imports
+  #   networks:
+  #     - wordpress-network
+
   web:
     depends_on:
       - visayakpo
+      # - exceture
     image: nginx:alpine
     container_name: wordpress-nginx
     volumes:
       - ${NGINX_HOST_LOG_PATH}:/var/log/nginx
       - ./nginx/config:/etc/nginx/conf.d
       - visayakpo:/var/www/visayakpo
+      # - exceture:/var/www/exceture
     ports:
       - 8000:80 # visayakpo
+      # - 8001:81 # exceture
     networks:
       - wordpress-network
 
@@ -71,5 +93,6 @@ networks:
 
 volumes:
   visayakpo:
+  # exceture:
   wordpressdb:
     driver: local
