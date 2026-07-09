@@ -60,7 +60,10 @@ Push `real-estate-business-sage` (and this repo) to a remote — GitHub/GitLab �
 
 ### For a runnable local environment
 
-If they also need to run the site locally (not just read the code), hand off the `real-estate-business` folder plus a DB export and the media folder:
+If they also need to run the site locally (not just read the code), hand off two things:
+
+1. **The `real-estate-business` folder** — zip and send the whole thing (WordPress core, plugins, and `wp-content/uploads/` media are all inside it already; no separate step needed for media).
+2. **A database export** — the DB is *not* part of that folder. WordPress splits files (on disk) from content (in MySQL), so posts/pages/users/settings only exist in the database and have to be exported separately:
 
 #### Export the database
 
@@ -75,16 +78,14 @@ docker compose exec db mysqldump -u root -p"$MYSQL_ROOT_PASSWORD" \
 
 #### Import the database
 
-On the receiving end, after `docker compose up -d`:
+`exports/` is gitignored, so it won't exist on a fresh clone — create it and drop the received `.sql` file in before importing:
 
 ```bash
+mkdir -p exports
+# place the received .sql file into exports/, then:
 source .env
 docker compose exec -T db mysql -u root -p"$MYSQL_ROOT_PASSWORD" real_estate_business < exports/real_estate_business_YYYYMMDD.sql
 ```
-
-#### Media files
-
-Zip and send `real-estate-business/wp-content/uploads/` separately — it isn't part of the DB dump or git.
 
 #### Fix the site URL after import
 
