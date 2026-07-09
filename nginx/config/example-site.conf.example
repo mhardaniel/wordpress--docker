@@ -1,9 +1,23 @@
+# Template for adding another WordPress site to this stack.
+#
+# Sites aren't routed by server_name here, so each additional site needs
+# its own "listen" port plus a matching host port in docker-compose.yaml
+# (e.g. "8001:81" for the web service).
+#
+# To use:
+#   1. Copy to example-site.conf (the .conf extension is what nginx loads)
+#   2. Replace "example-site" below with your site's name
+#   3. Add a matching service block in docker-compose.yaml (see the
+#      commented "example-site" block there) and a volume mount in the
+#      web service
+#   4. docker compose up -d
+
 server {
     listen 81;
 
     index index.php index.html index.htm;
 
-    root /var/www/exceture;
+    root /var/www/example-site;
 
     location / {
                 try_files $uri $uri/ /index.php$is_args$args;
@@ -12,7 +26,7 @@ server {
         location ~ \.php$ {
                 try_files $uri =404;
                 fastcgi_split_path_info ^(.+\.php)(/.+)$;
-                fastcgi_pass exceture:9000;
+                fastcgi_pass example-site:9000;
                 fastcgi_index index.php;
                 include fastcgi_params;
                 fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;

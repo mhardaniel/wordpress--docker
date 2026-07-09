@@ -8,65 +8,70 @@ services:
       - ./mysql:/docker-entrypoint-initdb.d
     env_file: .env
     environment:
-      MYSQL_ROOT_PASSWOR: $MYSQL_ROOT_PASSWORD
-      #MYSQL_DATABASE: visayakpo
+      MYSQL_ROOT_PASSWORD: $MYSQL_ROOT_PASSWORD
+      #MYSQL_DATABASE: real_estate_business
       MYSQL_USER: $MYSQL_USER
       MYSQL_PASSWORD: $MYSQL_PASSWORD
     networks:
       - wordpress-network
 
-  visayakpo:
+  real-estate-business:
     build:
       context: ./php
     depends_on:
       - db
-    image: wordpress:fpm-alpine
-    container_name: wordpress-visayakpo
-    working_dir: /var/www/visayakpo
+    container_name: wordpress-real-estate-business
+    working_dir: /var/www/real-estate-business
+    user: "1000:1000"
     env_file: .env
     environment:
       WORDPRESS_DB_HOST: db
       WORDPRESS_DB_USER: $MYSQL_USER
       WORDPRESS_DB_PASSWORD: $MYSQL_PASSWORD
-      WORDPRESS_DB_NAME: visayakpo
+      WORDPRESS_DB_NAME: real_estate_business
     volumes:
-      - visayakpo:/var/www/visayakpo
-      - ./imports/visayakpo:/var/www/visayakpo/imports
+      - ../real-estate-business:/var/www/real-estate-business
+      - ../real-estate-business-sage:/var/www/real-estate-business/wp-content/themes/real-estate-business-sage
     networks:
       - wordpress-network
 
-  # exceture:
+  # Template for adding another WordPress site to this stack.
+  # Copy/uncomment, rename "example-site" throughout, and add a matching
+  # nginx server block (see nginx/config/example-site.conf.example).
+  # example-site:
+  #   build:
+  #     context: ./php
   #   depends_on:
   #     - db
-  #   image: wordpress:fpm-alpine
-  #   container_name: wordpress-exceture
-  #   working_dir: /var/www/exceture
+  #   container_name: wordpress-example-site
+  #   working_dir: /var/www/example-site
   #   env_file: .env
   #   environment:
   #     WORDPRESS_DB_HOST: db
   #     WORDPRESS_DB_USER: $MYSQL_USER
   #     WORDPRESS_DB_PASSWORD: $MYSQL_PASSWORD
-  #     WORDPRESS_DB_NAME: exceture
+  #     WORDPRESS_DB_NAME: example_site
   #   volumes:
-  #     - exceture:/var/www/exceture
-  #     - ./imports/exceture:/var/www/exceture/imports
+  #     - example-site:/var/www/example-site
+  #     - ./imports/example-site:/var/www/example-site/imports
   #   networks:
   #     - wordpress-network
 
   web:
     depends_on:
-      - visayakpo
-      # - exceture
+      - real-estate-business
+      # - example-site
     image: nginx:alpine
     container_name: wordpress-nginx
     volumes:
       - ${NGINX_HOST_LOG_PATH}:/var/log/nginx
       - ./nginx/config:/etc/nginx/conf.d
-      - visayakpo:/var/www/visayakpo
-      # - exceture:/var/www/exceture
+      - ../real-estate-business:/var/www/real-estate-business
+      - ../real-estate-business-sage:/var/www/real-estate-business/wp-content/themes/real-estate-business-sage
+      # - example-site:/var/www/example-site
     ports:
-      - 8000:80 # visayakpo
-      # - 8001:81 # exceture
+      - 8000:80 # real-estate-business
+      # - 8001:81 # example-site
     networks:
       - wordpress-network
 
@@ -92,7 +97,6 @@ networks:
     driver: bridge
 
 volumes:
-  visayakpo:
-  # exceture:
+  # example-site:
   wordpressdb:
     driver: local

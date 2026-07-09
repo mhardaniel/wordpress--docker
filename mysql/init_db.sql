@@ -1,8 +1,9 @@
-CREATE DATABASE visayakpo;
-CREATE DATABASE exceture;
--- CREATE USER 'visaya'@'%' IDENTIFIED WITH mysql_native_password BY 'LetmeIn';
+CREATE DATABASE real_estate_business;
+GRANT ALL PRIVILEGES ON real_estate_business.* TO 'wordpress'@'%';
 
-GRANT ALL PRIVILEGES ON exceture.* TO 'wordpress'@'%';
-GRANT ALL PRIVILEGES ON visayakpo.* TO 'wordpress'@'%';
+-- Template for adding another WordPress site's database.
+-- Uncomment and rename "example_site" to add one.
+-- CREATE DATABASE example_site;
+-- GRANT ALL PRIVILEGES ON example_site.* TO 'wordpress'@'%';
 
 FLUSH PRIVILEGES;
