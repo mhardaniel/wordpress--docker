@@ -4,25 +4,29 @@ Local Docker environment for the **real-estate-business** WordPress site (Sage t
 
 ## Project layout
 
-This repo expects to sit next to the two code repos it mounts as volumes:
+This repo expects to sit next to two more directories it mounts as volumes:
 
 ```
 codes/php/
-├── wordpress--docker/           # this repo (Docker setup)
-├── real-estate-business/        # WordPress core + wp-content
-└── real-estate-business-sage/   # Sage theme (wp-content/themes/real-estate-business-sage)
+├── wordpress--docker/           # this repo (Docker setup) — git repo
+├── real-estate-business/        # WordPress core + wp-content — plain folder, not git
+└── real-estate-business-sage/   # Sage theme (wp-content/themes/real-estate-business-sage) — git repo
 ```
 
-Clone all three into the same parent directory before starting.
+Only `wordpress--docker` and `real-estate-business-sage` are git repos — that's where the custom code lives (infra + theme). `real-estate-business` is WordPress core plus third-party plugins (ACF, Akismet); it's scaffolding, not something to version or review, so it's handed off as a plain folder/DB dump instead of cloned.
+
+Set up all three in the same parent directory before starting.
 
 ## Prerequisites
 
 - Docker + Docker Compose
 - Git
 
+> Just reviewing code, not running the site? Skip to [For code review only](#for-code-review-only) — none of the setup below is needed.
+
 ## First-time setup
 
-1. **Clone the repos side by side** as shown above.
+1. **Get the three directories side by side** as shown above (clone the two git repos; copy the `real-estate-business` folder from whoever is sharing it).
 
 2. **Create your env file**
 
@@ -46,13 +50,19 @@ Clone all three into the same parent directory before starting.
 
 4. **Import the database** (see below) so the site has content instead of a blank WordPress install.
 
-5. **wp-config.php**: `real-estate-business/wp-config.php` is not tracked in git and isn't included in the DB dump. Get a copy from whoever is sharing the project with you (it reads DB credentials from the container's env vars via `getenv_docker`, so it should work as-is once `.env` is set).
+5. **wp-config.php**: comes along with the `real-estate-business` folder — it's stock WordPress Docker boilerplate with no secrets baked in (DB credentials and auth keys are all read from env vars via `getenv_docker()`). If it's ever missing, the container's entrypoint regenerates it automatically from `.env` on first boot.
 
 ## Sharing the project with another user
 
-Hand off three things: the three repos (git), a DB export, and the `wp-content/uploads` media folder (also not in git).
+### For code review only
 
-### Export the database
+Push `real-estate-business-sage` (and this repo) to a remote — GitHub/GitLab — and give them access. That's all that's needed; the DB export, media files, and the `real-estate-business` folder below are **not required** just to read/review the theme code.
+
+### For a runnable local environment
+
+If they also need to run the site locally (not just read the code), hand off the `real-estate-business` folder plus a DB export and the media folder:
+
+#### Export the database
 
 ```bash
 source .env
@@ -63,7 +73,7 @@ docker compose exec db mysqldump -u root -p"$MYSQL_ROOT_PASSWORD" \
 
 `exports/` is gitignored — send the `.sql` file directly (zip/drive/etc), don't commit it. It can contain user emails and password hashes.
 
-### Import the database
+#### Import the database
 
 On the receiving end, after `docker compose up -d`:
 
@@ -72,11 +82,11 @@ source .env
 docker compose exec -T db mysql -u root -p"$MYSQL_ROOT_PASSWORD" real_estate_business < exports/real_estate_business_YYYYMMDD.sql
 ```
 
-### Media files
+#### Media files
 
 Zip and send `real-estate-business/wp-content/uploads/` separately — it isn't part of the DB dump or git.
 
-### Fix the site URL after import
+#### Fix the site URL after import
 
 If the dump came from a different host/port, update the URLs so links and assets resolve locally:
 
